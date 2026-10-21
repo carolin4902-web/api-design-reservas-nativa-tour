@@ -170,5 +170,3 @@ La tecnología de base de datos está pendiente de definición. Se seleccionará
 ### Metodología de trabajo
 
 Se utilizará Scrum como referencia para organizar las actividades, distribuir las tareas y realizar un seguimiento del avance durante el desarrollo de la API.
-
-### CORE
