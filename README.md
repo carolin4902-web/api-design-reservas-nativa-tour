@@ -165,13 +165,3 @@ La tecnología de base de datos está pendiente de definición. Se seleccionará
 4. Implementar controladores para los endpoints GET.
 5. Implementar creación de tours y reservas con control de cupos.
 6. Documentar la API en Swagger/Postman y hacer pruebas.
-
-
-### Metodología de trabajo
-
-Se utilizará Scrum como referencia para organizar las actividades, distribuir las tareas y realizar un seguimiento del avance durante el desarrollo de la API.
-
-
-
-
-# probando commit desde la rama feature/reservas
