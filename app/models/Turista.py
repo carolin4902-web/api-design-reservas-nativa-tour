@@ -10,5 +10,3 @@ class Turista(SQLModel, table=True):
     apellido: str
     correo: str
     telefono: str
-
-    
