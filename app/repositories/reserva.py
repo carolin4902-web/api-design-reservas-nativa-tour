@@ -12,8 +12,8 @@ class ReservaRepository:
 
     async def get_multi(self, *, skip: int = 0, limit: int = 100, turista_id: int | None = None) -> list[Reserva]:
         statement = select(Reserva)
-        if turista_id:
-            statement = statement.where(Reserva.turista_id == turista_id)
+        if turista_id is not None:
+            statement = statement.where(Reserva.id_turista == turista_id)
         statement = statement.offset(skip).limit(limit)
         result = await self.session.execute(statement)
         return list(result.scalars().all())

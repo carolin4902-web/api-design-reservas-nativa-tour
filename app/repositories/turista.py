@@ -11,7 +11,7 @@ class TuristaRepository:
         return await self.session.get(Turista, turista_id)
 
     async def get_by_email(self, email: str) -> Turista | None:
-        statement = select(Turista).where(Turista.email == email)
+        statement = select(Turista).where(Turista.correo == email)
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
 

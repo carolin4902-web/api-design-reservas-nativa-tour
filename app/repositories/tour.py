@@ -12,8 +12,8 @@ class TourRepository:
 
     async def get_multi(self, *, skip: int = 0, limit: int = 100, guia_id: int | None = None) -> list[Tour]:
         statement = select(Tour)
-        if guia_id:
-            statement = statement.where(Tour.guia_id == guia_id)
+        if guia_id is not None:
+            statement = statement.where(Tour.id_guia == guia_id)
         statement = statement.offset(skip).limit(limit)
         result = await self.session.execute(statement)
         return list(result.scalars().all())

@@ -11,7 +11,7 @@ class GuiaRepository:
         return await self.session.get(Guia, guia_id)
 
     async def get_by_email(self, email: str) -> Guia | None:
-        statement = select(Guia).where(Guia.email == email)
+        statement = select(Guia).where(Guia.correo == email)
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
 
