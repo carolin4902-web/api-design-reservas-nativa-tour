@@ -8,8 +8,13 @@ venv/
 
 # Caché de Python
 __pycache__/
+<<<<<<< HEAD
+*.pyc
+venv/
+=======
 *.py[cod]
 
 # Bases de datos locales
 *.db
 *.sqlite3
+>>>>>>> main
