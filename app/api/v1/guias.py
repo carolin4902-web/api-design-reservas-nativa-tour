@@ -6,7 +6,7 @@ from app.api.deps import get_guia_service
 from app.models.Guia import GuiaCreate, GuiaPublic, GuiaUpdate
 from app.services.guia import GuiaService
 
-router = APIRouter(prefix="/guias", tags=["Guías"])
+router = APIRouter(prefix="/guias", tags=["guias"])
 
 
 @router.post("", response_model=GuiaPublic, status_code=status.HTTP_201_CREATED)

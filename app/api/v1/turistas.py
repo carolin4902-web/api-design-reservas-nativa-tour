@@ -6,7 +6,7 @@ from app.api.deps import get_turista_service
 from app.models.Turista import TuristaCreate, TuristaPublic, TuristaUpdate
 from app.services.turista import TuristaService
 
-router = APIRouter(prefix="/turistas", tags=["Turistas"])
+router = APIRouter(prefix="/turistas", tags=["turistas"])
 
 
 @router.post("", response_model=TuristaPublic, status_code=status.HTTP_201_CREATED)
