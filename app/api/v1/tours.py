@@ -6,7 +6,7 @@ from app.api.deps import get_tour_service
 from app.models.Tour import TourCreate, TourPublic, TourUpdate
 from app.services.tour import TourService
 
-router = APIRouter(prefix="/tours", tags=["Tours"])
+router = APIRouter(prefix="/tours", tags=["tours"])
 
 
 @router.post("", response_model=TourPublic, status_code=status.HTTP_201_CREATED)

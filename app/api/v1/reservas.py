@@ -6,7 +6,7 @@ from app.api.deps import get_reserva_service
 from app.models.Reserva import ReservaCreate, ReservaPublic, ReservaUpdate
 from app.services.reserva import ReservaService
 
-router = APIRouter(prefix="/reservas", tags=["Reservas"])
+router = APIRouter(prefix="/reservas", tags=["reservas"])
 
 
 @router.post("", response_model=ReservaPublic, status_code=status.HTTP_201_CREATED)
