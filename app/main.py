@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 import app.models
 from app.core.database import init_db, engine
@@ -10,11 +11,8 @@ from app.api.v1 import guias, reservas, tours, turistas
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Gestiona el inicio y cierre de la aplicación."""
-
     await init_db()
-
     yield
-
     await engine.dispose()
 
 
@@ -25,7 +23,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Registro de enrutadores modulares de la versión 1
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"], 
+)
+
+
 app.include_router(turistas.router, prefix="/api/v1", tags=["turistas"])
 app.include_router(guias.router, prefix="/api/v1", tags=["guias"])
 app.include_router(tours.router, prefix="/api/v1", tags=["tours"])
