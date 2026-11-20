@@ -37,6 +37,12 @@ app.include_router(guias.router, prefix="/api/v1", tags=["guias"])
 app.include_router(tours.router, prefix="/api/v1", tags=["tours"])
 app.include_router(reservas.router, prefix="/api/v1", tags=["reservas"])
 
+# Registro de enrutadores modulares de la versión 1
+app.include_router(turistas.router, prefix="/api/v1")
+app.include_router(guias.router, prefix="/api/v1")
+app.include_router(tours.router, prefix="/api/v1")
+app.include_router(reservas.router, prefix="/api/v1")
+
 
 @app.get("/")
 async def root():
