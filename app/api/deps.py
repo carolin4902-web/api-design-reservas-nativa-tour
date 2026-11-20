@@ -6,12 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session
 
 # Importación de Repositorios
+from app.repositories.destination import DestinationRepository
 from app.repositories.turista import TuristaRepository
 from app.repositories.guia import GuiaRepository
 from app.repositories.tour import TourRepository
 from app.repositories.reserva import ReservaRepository
 
 # Importación de Servicios
+from app.services.destination import DestinationService
 from app.services.turista import TuristaService
 from app.services.guia import GuiaService
 from app.services.tour import TourService
@@ -21,6 +23,13 @@ from app.services.reserva import ReservaService
 # ==========================================
 # Proveedores de Servicios (Inyección)
 # ==========================================
+
+def get_destination_service(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> DestinationService:
+    """Instancia y retorna el servicio de destinos con su respectivo repositorio."""
+    return DestinationService(DestinationRepository(session))
+
 
 def get_turista_service(
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -55,3 +64,14 @@ def get_reserva_service(
         turista_repo=TuristaRepository(session),
         tour_repo=TourRepository(session),
     )
+
+
+# ==========================================
+# Alias de Tipo para Inyección en Routers (Annotated)
+# ==========================================
+
+DestinationServiceDep = Annotated[DestinationService, Depends(get_destination_service)]
+TuristaServiceDep = Annotated[TuristaService, Depends(get_turista_service)]
+GuiaServiceDep = Annotated[GuiaService, Depends(get_guia_service)]
+TourServiceDep = Annotated[TourService, Depends(get_tour_service)]
+ReservaServiceDep = Annotated[ReservaService, Depends(get_reserva_service)]
