@@ -29,7 +29,7 @@ class ReservaService:
 
     async def create(self, reserva_in: ReservaCreate) -> Reserva:
         # Regla de Negocio 1: Validar que el turista exista
-        turista = await self.turista_repo.get_by_id(reserva_in.turista_id)
+        turista = await self.turista_repo.get_by_id(reserva_in.id_turista)
         if not turista or not turista.activo:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -37,7 +37,7 @@ class ReservaService:
             )
 
         # Regla de Negocio 2: Validar que el tour exista y tenga cupos suficientes
-        tour = await self.tour_repo.get_by_id(reserva_in.tour_id)
+        tour = await self.tour_repo.get_by_id(reserva_in.id_tour)
         if not tour or not tour.activo:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

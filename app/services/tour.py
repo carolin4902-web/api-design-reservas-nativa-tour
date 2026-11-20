@@ -19,7 +19,7 @@ class TourService:
 
     async def create(self, tour_in: TourCreate) -> Tour:
         # Regla: Validar que el guía exista y esté verificado
-        guia = await self.guia_repo.get_by_id(tour_in.guia_id)
+        guia = await self.guia_repo.get_by_id(tour_in.id_guia)
         if not guia or not guia.verificado:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El guía asignado no existe o no está verificado.")
         return await self.tour_repo.create(tour_in)
