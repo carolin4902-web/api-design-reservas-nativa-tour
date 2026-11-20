@@ -1,5 +1,6 @@
 # app/api/v1/reservas.py
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import get_reserva_service
@@ -15,8 +16,7 @@ async def create_reserva(
     service: Annotated[ReservaService, Depends(get_reserva_service)],
 ) -> ReservaPublic:
     """Crea una solicitud de reserva verificando cupos y estado del turista."""
-    db_reserva = await service.create(reserva_in)
-    return ReservaPublic.model_validate(db_reserva)
+    return await service.create(reserva_in)
 
 
 @router.get("", response_model=list[ReservaPublic])
@@ -27,8 +27,11 @@ async def list_reservas(
     turista_id: int | None = None,
 ) -> list[ReservaPublic]:
     """Obtiene el listado general de reservas o filtradas por turista."""
-    reservas = await service.list_all(skip=skip, limit=limit, turista_id=turista_id)
-    return [ReservaPublic.model_validate(r) for r in reservas]
+    return await service.list_all(
+        skip=skip,
+        limit=limit,
+        turista_id=turista_id,
+    )
 
 
 @router.get("/{reserva_id}", response_model=ReservaPublic)
@@ -37,8 +40,7 @@ async def get_reserva(
     service: Annotated[ReservaService, Depends(get_reserva_service)],
 ) -> ReservaPublic:
     """Obtiene el detalle de una reserva específica."""
-    db_reserva = await service.get_by_id(reserva_id)
-    return ReservaPublic.model_validate(db_reserva)
+    return await service.get_by_id(reserva_id)
 
 
 @router.patch("/{reserva_id}", response_model=ReservaPublic)
@@ -48,8 +50,7 @@ async def update_reserva(
     service: Annotated[ReservaService, Depends(get_reserva_service)],
 ) -> ReservaPublic:
     """Modifica el estado o cantidad de personas en una reserva."""
-    db_reserva = await service.update(reserva_id, reserva_in)
-    return ReservaPublic.model_validate(db_reserva)
+    return await service.update(reserva_id, reserva_in)
 
 
 @router.delete("/{reserva_id}", status_code=status.HTTP_204_NO_CONTENT)

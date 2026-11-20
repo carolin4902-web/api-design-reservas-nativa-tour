@@ -1,48 +1,59 @@
 # app/api/deps.py
 from typing import Annotated
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
+from app.core.unit_of_work import UnitOfWork
 
 # Importación de Repositorios
 from app.repositories.destination import DestinationRepository
-from app.repositories.turista import TuristaRepository
 from app.repositories.guia import GuiaRepository
-from app.repositories.tour import TourRepository
 from app.repositories.reserva import ReservaRepository
+from app.repositories.tour import TourRepository
+from app.repositories.turista import TuristaRepository
 
 # Importación de Servicios
 from app.services.destination import DestinationService
-from app.services.turista import TuristaService
 from app.services.guia import GuiaService
-from app.services.tour import TourService
 from app.services.reserva import ReservaService
-
+from app.services.tour import TourService
+from app.services.turista import TuristaService
 
 # ==========================================
 # Proveedores de Servicios (Inyección)
 # ==========================================
 
+
 def get_destination_service(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> DestinationService:
     """Instancia y retorna el servicio de destinos con su respectivo repositorio."""
-    return DestinationService(DestinationRepository(session))
+    return DestinationService(
+        destination_repo=DestinationRepository(session),
+        unit_of_work=UnitOfWork(session),
+    )
 
 
 def get_turista_service(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> TuristaService:
     """Instancia y retorna el servicio de turistas con su respectivo repositorio."""
-    return TuristaService(TuristaRepository(session))
+    return TuristaService(
+        turista_repo=TuristaRepository(session),
+        unit_of_work=UnitOfWork(session),
+    )
 
 
 def get_guia_service(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> GuiaService:
     """Instancia y retorna el servicio de guías con su respectivo repositorio."""
-    return GuiaService(GuiaRepository(session))
+    return GuiaService(
+        guia_repo=GuiaRepository(session),
+        unit_of_work=UnitOfWork(session),
+    )
 
 
 def get_tour_service(
@@ -51,7 +62,8 @@ def get_tour_service(
     """Instancia y retorna el servicio de tours coordinando los repositorios de Tour y Guía."""
     return TourService(
         tour_repo=TourRepository(session),
-        guia_repo=GuiaRepository(session)
+        guia_repo=GuiaRepository(session),
+        unit_of_work=UnitOfWork(session),
     )
 
 
@@ -63,6 +75,7 @@ def get_reserva_service(
         reserva_repo=ReservaRepository(session),
         turista_repo=TuristaRepository(session),
         tour_repo=TourRepository(session),
+        unit_of_work=UnitOfWork(session),
     )
 
 

@@ -1,5 +1,6 @@
 # app/api/v1/turistas.py
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import get_turista_service
@@ -15,8 +16,7 @@ async def create_turista(
     service: Annotated[TuristaService, Depends(get_turista_service)],
 ) -> TuristaPublic:
     """Registra un nuevo turista en Nativa-Tour."""
-    db_turista = await service.create(turista_in)
-    return TuristaPublic.model_validate(db_turista)
+    return await service.create(turista_in)
 
 
 @router.get("", response_model=list[TuristaPublic])
@@ -26,8 +26,7 @@ async def list_turistas(
     limit: int = 100,
 ) -> list[TuristaPublic]:
     """Obtiene la lista de turistas registrados."""
-    turistas = await service.list_all(skip=skip, limit=limit)
-    return [TuristaPublic.model_validate(t) for t in turistas]
+    return await service.list_all(skip=skip, limit=limit)
 
 
 @router.get("/{turista_id}", response_model=TuristaPublic)
@@ -36,8 +35,7 @@ async def get_turista(
     service: Annotated[TuristaService, Depends(get_turista_service)],
 ) -> TuristaPublic:
     """Obtiene el detalle de un turista por su ID."""
-    db_turista = await service.get_by_id(turista_id)
-    return TuristaPublic.model_validate(db_turista)
+    return await service.get_by_id(turista_id)
 
 
 @router.patch("/{turista_id}", response_model=TuristaPublic)
@@ -47,8 +45,7 @@ async def update_turista(
     service: Annotated[TuristaService, Depends(get_turista_service)],
 ) -> TuristaPublic:
     """Actualiza la información de un turista."""
-    db_turista = await service.update(turista_id, turista_in)
-    return TuristaPublic.model_validate(db_turista)
+    return await service.update(turista_id, turista_in)
 
 
 @router.delete("/{turista_id}", status_code=status.HTTP_204_NO_CONTENT)
