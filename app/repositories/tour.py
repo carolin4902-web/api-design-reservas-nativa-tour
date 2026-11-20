@@ -20,6 +20,7 @@ class TourRepository:
 
     async def create(self, tour_in: TourCreate) -> Tour:
         db_tour = Tour.model_validate(tour_in)
+        db_tour.cupos_disponibles = db_tour.capacidad
         self.session.add(db_tour)
         await self.session.commit()
         await self.session.refresh(db_tour)

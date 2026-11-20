@@ -3,7 +3,7 @@ from app.models.Turista import Turista, TuristaCreate, TuristaUpdate
 from app.repositories.turista import TuristaRepository
 
 class TuristaService:
-    def _init_(self, turista_repo: TuristaRepository) -> None:
+    def __init__(self, turista_repo: TuristaRepository) -> None:
         self.turista_repo = turista_repo
 
     async def get_by_id(self, turista_id: int) -> Turista:
@@ -16,7 +16,7 @@ class TuristaService:
         return await self.turista_repo.get_multi(skip=skip, limit=limit)
 
     async def create(self, turista_in: TuristaCreate) -> Turista:
-        existing = await self.turista_repo.get_by_email(turista_in.email)
+        existing = await self.turista_repo.get_by_email(turista_in.correo)
         if existing:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El correo ya está registrado.")
         return await self.turista_repo.create(turista_in)

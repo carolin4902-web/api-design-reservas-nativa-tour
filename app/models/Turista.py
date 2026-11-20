@@ -6,7 +6,7 @@ from sqlmodel import Field, SQLModel
 class TuristaBase(SQLModel):
     nombre: str = Field(min_length=1, max_length=100)
     apellido: str = Field(min_length=1, max_length=100)
-    correo: str = Field(min_length=1, max_length=150, index=True)
+    correo: str = Field(min_length=1, max_length=150, index=True, unique=True)
     telefono: str = Field(min_length=1, max_length=20)
 
 
@@ -15,6 +15,7 @@ class Turista(TuristaBase, table=True):
     __tablename__ = "turista"
 
     id_turista: int | None = Field(default=None, primary_key=True)
+    activo: bool = Field(default=True, nullable=False)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
@@ -36,10 +37,12 @@ class TuristaUpdate(SQLModel):
     apellido: str | None = Field(default=None, min_length=1, max_length=100)
     correo: str | None = Field(default=None, min_length=1, max_length=150)
     telefono: str | None = Field(default=None, min_length=1, max_length=20)
+    activo: bool | None = None
 
 
 # 5. DTO de Salida (GET)
 class TuristaPublic(TuristaBase):
     id_turista: int
+    activo: bool
     created_at: datetime
     updated_at: datetime

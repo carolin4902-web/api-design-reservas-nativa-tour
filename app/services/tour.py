@@ -4,7 +4,7 @@ from app.repositories.tour import TourRepository
 from app.repositories.guia import GuiaRepository
 
 class TourService:
-    def _init_(self, tour_repo: TourRepository, guia_repo: GuiaRepository) -> None:
+    def __init__(self, tour_repo: TourRepository, guia_repo: GuiaRepository) -> None:
         self.tour_repo = tour_repo
         self.guia_repo = guia_repo
 
@@ -26,6 +26,25 @@ class TourService:
 
     async def update(self, tour_id: int, tour_in: TourUpdate) -> Tour:
         tour = await self.get_by_id(tour_id)
+        if tour_in.id_guia is not None:
+            guia = await self.guia_repo.get_by_id(tour_in.id_guia)
+            if not guia or not guia.verificado:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="El guía asignado no existe o no está verificado.",
+                )
+
+        update_data = tour_in.model_dump(exclude_unset=True)
+        if "capacidad" in update_data:
+            cupos_ocupados = tour.capacidad - tour.cupos_disponibles
+            nueva_capacidad = update_data["capacidad"]
+            if nueva_capacidad < cupos_ocupados:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="La capacidad no puede ser menor que los cupos ya reservados.",
+                )
+            tour.cupos_disponibles = nueva_capacidad - cupos_ocupados
+
         return await self.tour_repo.update(tour, tour_in)
 
     async def delete(self, tour_id: int) -> None:
