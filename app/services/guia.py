@@ -3,7 +3,7 @@ from app.models.Guia import Guia, GuiaCreate, GuiaUpdate
 from app.repositories.guia import GuiaRepository
 
 class GuiaService:
-    def _init_(self, guia_repo: GuiaRepository) -> None:
+    def __init__(self, guia_repo: GuiaRepository) -> None:
         self.guia_repo = guia_repo
 
     async def get_by_id(self, guia_id: int) -> Guia:
@@ -16,7 +16,7 @@ class GuiaService:
         return await self.guia_repo.get_multi(skip=skip, limit=limit)
 
     async def create(self, guia_in: GuiaCreate) -> Guia:
-        existing = await self.guia_repo.get_by_email(guia_in.email)
+        existing = await self.guia_repo.get_by_email(guia_in.correo)
         if existing:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El correo del guía ya existe.")
         return await self.guia_repo.create(guia_in)

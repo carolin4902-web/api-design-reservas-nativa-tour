@@ -23,6 +23,8 @@ class Tour(TourBase, table=True):
     id_guia: int = Field(
         foreign_key="guia.id_guia"
     )
+    activo: bool = Field(default=True, nullable=False)
+    cupos_disponibles: int = Field(default=0, ge=0)
 
 
 class TourCreate(TourBase):
@@ -36,8 +38,11 @@ class TourUpdate(SQLModel):
     precio: Optional[float] = Field(default=None, gt=0)
     capacidad: Optional[int] = Field(default=None, gt=0)
     id_guia: Optional[int] = Field(default=None, gt=0)
+    activo: Optional[bool] = None
 
 
 class TourPublic(TourBase):
     id_tour: int
     id_guia: int
+    activo: bool
+    cupos_disponibles: int

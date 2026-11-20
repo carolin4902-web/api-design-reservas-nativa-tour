@@ -50,19 +50,65 @@ class ReservaService:
                 detail=f"Cupos insuficientes. Solo quedan {tour.cupos_disponibles} cupos disponibles."
             )
 
-        # Crear la reserva
-        nueva_reserva = await self.reserva_repo.create(reserva_in)
-        
-        # Actualizar cupos del tour restando los reservados
+        nueva_reserva = Reserva.model_validate(reserva_in)
+        self.reserva_repo.session.add(nueva_reserva)
         tour.cupos_disponibles -= reserva_in.cantidad_personas
-        await self.tour_repo.session.commit()
+        self.tour_repo.session.add(tour)
+        await self.reserva_repo.session.commit()
+        await self.reserva_repo.session.refresh(nueva_reserva)
 
         return nueva_reserva
 
     async def update(self, reserva_id: int, reserva_in: ReservaUpdate) -> Reserva:
         reserva = await self.get_by_id(reserva_id)
-        return await self.reserva_repo.update(reserva, reserva_in)
+        update_data = reserva_in.model_dump(exclude_unset=True)
+        old_tour = await self.tour_repo.get_by_id(reserva.id_tour)
+        if not old_tour:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El tour asociado no existe.")
+
+        new_tour_id = update_data.get("id_tour", reserva.id_tour)
+        new_quantity = update_data.get("cantidad_personas", reserva.cantidad_personas)
+        new_tour = old_tour if new_tour_id == reserva.id_tour else await self.tour_repo.get_by_id(new_tour_id)
+
+        if not new_tour or not new_tour.activo:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El tour seleccionado no está disponible.")
+
+        if new_tour_id == reserva.id_tour:
+            available = new_tour.cupos_disponibles + reserva.cantidad_personas
+            if new_quantity > available:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cupos insuficientes. Solo quedan {new_tour.cupos_disponibles} cupos disponibles.",
+                )
+            new_tour.cupos_disponibles = available - new_quantity
+        else:
+            old_tour.cupos_disponibles += reserva.cantidad_personas
+            if new_tour.cupos_disponibles < new_quantity:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cupos insuficientes. Solo quedan {new_tour.cupos_disponibles} cupos disponibles.",
+                )
+            new_tour.cupos_disponibles -= new_quantity
+
+        for field, value in update_data.items():
+            setattr(reserva, field, value)
+
+        self.reserva_repo.session.add(reserva)
+        self.tour_repo.session.add(old_tour)
+        if new_tour is not old_tour:
+            self.tour_repo.session.add(new_tour)
+        await self.reserva_repo.session.commit()
+        await self.reserva_repo.session.refresh(reserva)
+        return reserva
 
     async def delete(self, reserva_id: int) -> None:
         reserva = await self.get_by_id(reserva_id)
-        await self.reserva_repo.delete(reserva)
+        tour = await self.tour_repo.get_by_id(reserva.id_tour)
+        if tour:
+            tour.cupos_disponibles = min(
+                tour.capacidad,
+                tour.cupos_disponibles + reserva.cantidad_personas,
+            )
+            self.tour_repo.session.add(tour)
+        await self.reserva_repo.session.delete(reserva)
+        await self.reserva_repo.session.commit()

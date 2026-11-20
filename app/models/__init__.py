@@ -42,3 +42,12 @@ from app.models.task import (
     TaskUpdate,
     TaskPublic,
 )
+
+# Modelo y DTOs de Destino
+from app.models.destination import (
+    Destination,
+    DestinationBase,
+    DestinationCreate,
+    DestinationUpdate,
+    DestinationPublic,
+)

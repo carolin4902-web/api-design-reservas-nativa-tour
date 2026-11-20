@@ -15,9 +15,7 @@ class TaskBase(SQLModel):
 
     is_completed: bool = Field(default=False)
 
-    responsable_tipo: str = Field(
-        regex="^(GUIA|ADMINISTRADOR)$"
-    )
+    responsable_tipo: str
 
     responsable_id: int = Field(gt=0)
 
