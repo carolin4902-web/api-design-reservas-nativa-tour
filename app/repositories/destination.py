@@ -1,7 +1,10 @@
-from typing import Sequence, Optional
+from collections.abc import Sequence
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-from app.repositories.destination import Destination, DestinationCreate, DestinationUpdate
+
+from app.models.destination import Destination, DestinationCreate, DestinationUpdate
+
 
 class DestinationRepository:
     def __init__(self, session: AsyncSession):
@@ -14,7 +17,7 @@ class DestinationRepository:
         await self.session.refresh(db_destination)
         return db_destination
 
-    async def get_by_id(self, destination_id: int) -> Optional[Destination]:
+    async def get_by_id(self, destination_id: int) -> Destination | None:
         result = await self.session.execute(
             select(Destination).where(Destination.id == destination_id)
         )
@@ -26,11 +29,13 @@ class DestinationRepository:
         )
         return result.scalars().all()
 
-    async def update(self, db_destination: Destination, destination_in: DestinationUpdate) -> Destination:
+    async def update(
+        self, db_destination: Destination, destination_in: DestinationUpdate
+    ) -> Destination:
         destination_data = destination_in.model_dump(exclude_unset=True)
         for key, value in destination_data.items():
             setattr(db_destination, key, value)
-        
+
         self.session.add(db_destination)
         await self.session.commit()
         await self.session.refresh(db_destination)
