@@ -1,7 +1,10 @@
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from app.models.Tour import Tour
 
 
 class GuiaBase(SQLModel):
@@ -20,6 +23,8 @@ class Guia(GuiaBase, table=True):
         primary_key=True
     )
     verificado: bool = Field(default=False, nullable=False)
+
+    tours: list["Tour"] = Relationship(back_populates="guia")
 
 
 class GuiaCreate(GuiaBase):

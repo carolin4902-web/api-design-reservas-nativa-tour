@@ -1,6 +1,12 @@
 
 from datetime import datetime, timezone
-from sqlmodel import Field, SQLModel
+from typing import TYPE_CHECKING
+
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from app.models.Reserva import Reserva
+
 
 # 1. Base Común
 class TuristaBase(SQLModel):
@@ -24,6 +30,8 @@ class Turista(TuristaBase, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+    reservas: list["Reserva"] = Relationship(back_populates="turista")
 
 
 # 3. DTO de Entrada (POST)

@@ -1,7 +1,11 @@
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from app.models.Guia import Guia
+    from app.models.Reserva import Reserva
 
 
 class TourBase(SQLModel):
@@ -21,10 +25,14 @@ class Tour(TourBase, table=True):
     )
 
     id_guia: int = Field(
-        foreign_key="guia.id_guia"
+        foreign_key="guia.id_guia",
+        gt=0,
     )
     activo: bool = Field(default=True, nullable=False)
     cupos_disponibles: int = Field(default=0, ge=0)
+
+    guia: Optional["Guia"] = Relationship(back_populates="tours")
+    reservas: list["Reserva"] = Relationship(back_populates="tour")
 
 
 class TourCreate(TourBase):

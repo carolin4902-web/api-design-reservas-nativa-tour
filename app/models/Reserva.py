@@ -1,8 +1,13 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import field_validator
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from app.models.Tour import Tour
+    from app.models.Turista import Turista
 
 ESTADOS_RESERVA_VALIDOS = {"pendiente", "confirmada", "cancelada"}
 
@@ -37,11 +42,13 @@ class Reserva(ReservaBase, table=True):
     )
 
     id_turista: int = Field(
-        foreign_key="turista.id_turista"
+        foreign_key="turista.id_turista",
+        gt=0,
     )
 
     id_tour: int = Field(
-        foreign_key="tour.id_tour"
+        foreign_key="tour.id_tour",
+        gt=0,
     )
 
     created_at: datetime = Field(
@@ -53,6 +60,9 @@ class Reserva(ReservaBase, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         nullable=False
     )
+
+    turista: Optional["Turista"] = Relationship(back_populates="reservas")
+    tour: Optional["Tour"] = Relationship(back_populates="reservas")
 
 
 # 3. DTO de Entrada (POST)

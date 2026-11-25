@@ -1,7 +1,7 @@
 from typing import Literal
 from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     RENDER_DATABASE_URL: str = Field(default="", validation_alias="DATABASE_URL")
 
     ECHO_SQL: bool = False
+
+    @model_validator(mode="after")
+    def validate_database_config(self) -> "Settings":
+        """Valida que exista una cadena de conexión cuando DB_TYPE es 'postgres'."""
+        if self.DB_TYPE == "postgres" and not self.raw_postgres_url:
+            raise ValueError(
+                "POSTGRES_URL o DATABASE_URL debe configurarse cuando DB_TYPE='postgres'."
+            )
+        return self
 
     @property
     def raw_postgres_url(self) -> str:
