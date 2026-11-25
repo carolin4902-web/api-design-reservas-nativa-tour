@@ -27,6 +27,10 @@ class GuiaService:
 
     async def update(self, guia_id: int, guia_in: GuiaUpdate) -> GuiaPublic:
         async with self.unit_of_work.transaction():
+            if guia_in.correo is not None:
+                existing = await self.guia_repo.get_by_email(guia_in.correo)
+                if existing is not None and existing.id_guia != guia_id:
+                    raise ConflictError("El correo del guía ya existe.")
             guia = await self.guia_repo.update(guia_id, guia_in)
             if guia is None:
                 raise NotFoundError("Guía no encontrado.")
@@ -34,6 +38,10 @@ class GuiaService:
 
     async def delete(self, guia_id: int) -> None:
         async with self.unit_of_work.transaction():
+            if await self.guia_repo.has_tours(guia_id):
+                raise ConflictError(
+                    "No se puede eliminar el guía porque tiene tours asociados."
+                )
             deleted = await self.guia_repo.delete(guia_id)
             if not deleted:
                 raise NotFoundError("Guía no encontrado.")

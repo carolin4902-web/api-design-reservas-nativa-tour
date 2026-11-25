@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_session
+from app.core.database import async_session_maker, get_session
 from app.core.unit_of_work import UnitOfWork
 
 # Importación de Repositorios
@@ -76,6 +76,7 @@ def get_reserva_service(
         turista_repo=TuristaRepository(session),
         tour_repo=TourRepository(session),
         unit_of_work=UnitOfWork(session),
+        read_session_maker=async_session_maker,
     )
 
 

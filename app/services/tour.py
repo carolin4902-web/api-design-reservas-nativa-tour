@@ -1,4 +1,4 @@
-from app.core.exceptions import BusinessRuleError, NotFoundError
+from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from app.core.unit_of_work import UnitOfWork
 from app.models.Tour import TourCreate, TourPublic, TourUpdate
 from app.repositories.guia import GuiaRepository
@@ -76,6 +76,10 @@ class TourService:
 
     async def delete(self, tour_id: int) -> None:
         async with self.unit_of_work.transaction():
+            if await self.tour_repo.has_reservas(tour_id):
+                raise ConflictError(
+                    "No se puede eliminar el tour porque tiene reservas asociadas."
+                )
             deleted = await self.tour_repo.delete(tour_id)
             if not deleted:
                 raise NotFoundError("Tour no encontrado.")

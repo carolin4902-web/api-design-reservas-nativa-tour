@@ -29,6 +29,10 @@ class TuristaService:
 
     async def update(self, turista_id: int, turista_in: TuristaUpdate) -> TuristaPublic:
         async with self.unit_of_work.transaction():
+            if turista_in.correo is not None:
+                existing = await self.turista_repo.get_by_email(turista_in.correo)
+                if existing is not None and existing.id_turista != turista_id:
+                    raise ConflictError("El correo ya está registrado.")
             turista = await self.turista_repo.update(turista_id, turista_in)
             if turista is None:
                 raise NotFoundError("Turista no encontrado.")
@@ -36,6 +40,10 @@ class TuristaService:
 
     async def delete(self, turista_id: int) -> None:
         async with self.unit_of_work.transaction():
+            if await self.turista_repo.has_reservas(turista_id):
+                raise ConflictError(
+                    "No se puede eliminar el turista porque tiene reservas asociadas."
+                )
             deleted = await self.turista_repo.delete(turista_id)
             if not deleted:
                 raise NotFoundError("Turista no encontrado.")

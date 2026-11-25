@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,23 +34,36 @@ class ReservaRepository:
             ReservaPublic.model_validate(reserva) for reserva in result.scalars().all()
         ]
 
-    async def create(self, reserva_in: ReservaCreate) -> ReservaPublic:
-        db_reserva = Reserva.model_validate(reserva_in)
+    async def create(
+        self,
+        reserva_in: ReservaCreate,
+        *,
+        precio_total: Decimal | None = None,
+    ) -> ReservaPublic:
+        extra = {"precio_total": precio_total} if precio_total is not None else {}
+        db_reserva = Reserva.model_validate(reserva_in, update=extra)
         self.session.add(db_reserva)
         await self.session.flush()
         await self.session.refresh(db_reserva)
         return ReservaPublic.model_validate(db_reserva)
 
     async def update(
-        self, reserva_id: int, reserva_in: ReservaUpdate
+        self,
+        reserva_id: int,
+        reserva_in: ReservaUpdate,
+        *,
+        precio_total: Decimal | None = None,
     ) -> ReservaPublic | None:
         db_reserva = await self.session.get(Reserva, reserva_id)
         if db_reserva is None:
             return None
 
         update_data: dict[str, Any] = reserva_in.model_dump(exclude_unset=True)
+        if precio_total is not None:
+            update_data["precio_total"] = precio_total
         for field, value in update_data.items():
             setattr(db_reserva, field, value)
+        db_reserva.updated_at = datetime.now(timezone.utc)
         self.session.add(db_reserva)
         await self.session.flush()
         await self.session.refresh(db_reserva)

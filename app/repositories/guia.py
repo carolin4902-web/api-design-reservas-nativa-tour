@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.models.Guia import Guia, GuiaCreate, GuiaPublic, GuiaUpdate
+from app.models.Tour import Tour
 
 
 class GuiaRepository:
@@ -48,6 +49,11 @@ class GuiaRepository:
         await self.session.flush()
         await self.session.refresh(db_guia)
         return GuiaPublic.model_validate(db_guia)
+
+    async def has_tours(self, guia_id: int) -> bool:
+        statement = select(Tour.id_tour).where(Tour.id_guia == guia_id).limit(1)
+        result = await self.session.execute(statement)
+        return result.scalar_one_or_none() is not None
 
     async def delete(self, guia_id: int) -> bool:
         db_guia = await self.session.get(Guia, guia_id)

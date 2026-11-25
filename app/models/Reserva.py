@@ -1,7 +1,10 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
+from pydantic import field_validator
 from sqlmodel import Field, SQLModel
+
+ESTADOS_RESERVA_VALIDOS = {"pendiente", "confirmada", "cancelada"}
 
 
 # 1. Base Común
@@ -12,7 +15,16 @@ class ReservaBase(SQLModel):
 
     precio_total: Decimal = Field(gt=0)
 
-    estado: str = Field(min_length=1, max_length=50)
+    estado: str = Field(default="confirmada", min_length=1, max_length=50)
+
+    @field_validator("estado")
+    @classmethod
+    def validate_estado(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in ESTADOS_RESERVA_VALIDOS:
+            allowed = ", ".join(sorted(ESTADOS_RESERVA_VALIDOS))
+            raise ValueError(f"Estado inválido '{value}'. Valores permitidos: {allowed}.")
+        return normalized
 
 
 # 2. Tabla de Base de Datos
@@ -44,9 +56,22 @@ class Reserva(ReservaBase, table=True):
 
 
 # 3. DTO de Entrada (POST)
-class ReservaCreate(ReservaBase):
-    id_turista: int
-    id_tour: int
+class ReservaCreate(SQLModel):
+    fecha_reserva: date
+    cantidad_personas: int = Field(ge=1)
+    precio_total: Decimal | None = Field(default=None, gt=0)
+    estado: str = Field(default="confirmada", min_length=1, max_length=50)
+    id_turista: int = Field(gt=0)
+    id_tour: int = Field(gt=0)
+
+    @field_validator("estado")
+    @classmethod
+    def validate_estado(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in ESTADOS_RESERVA_VALIDOS:
+            allowed = ", ".join(sorted(ESTADOS_RESERVA_VALIDOS))
+            raise ValueError(f"Estado inválido '{value}'. Valores permitidos: {allowed}.")
+        return normalized
 
 
 # 4. DTO de Edición (PATCH)
@@ -63,8 +88,19 @@ class ReservaUpdate(SQLModel):
         max_length=50
     )
 
-    id_turista: int | None = None
-    id_tour: int | None = None
+    id_turista: int | None = Field(default=None, gt=0)
+    id_tour: int | None = Field(default=None, gt=0)
+
+    @field_validator("estado")
+    @classmethod
+    def validate_estado(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip().lower()
+        if normalized not in ESTADOS_RESERVA_VALIDOS:
+            allowed = ", ".join(sorted(ESTADOS_RESERVA_VALIDOS))
+            raise ValueError(f"Estado inválido '{value}'. Valores permitidos: {allowed}.")
+        return normalized
 
 
 # 5. DTO de Salida (GET)
