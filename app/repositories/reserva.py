@@ -1,39 +1,79 @@
+from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-from app.models.Reserva import Reserva, ReservaCreate, ReservaUpdate
+
+from app.models.Reserva import Reserva, ReservaCreate, ReservaPublic, ReservaUpdate
+
 
 class ReservaRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_by_id(self, reserva_id: int) -> Reserva | None:
-        return await self.session.get(Reserva, reserva_id)
+    async def get_by_id(self, reserva_id: int) -> ReservaPublic | None:
+        reserva = await self.session.get(Reserva, reserva_id)
+        if reserva is None:
+            return None
+        return ReservaPublic.model_validate(reserva)
 
-    async def get_multi(self, *, skip: int = 0, limit: int = 100, turista_id: int | None = None) -> list[Reserva]:
+    async def get_multi(
+        self,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        turista_id: int | None = None,
+    ) -> list[ReservaPublic]:
         statement = select(Reserva)
         if turista_id is not None:
             statement = statement.where(Reserva.id_turista == turista_id)
         statement = statement.offset(skip).limit(limit)
         result = await self.session.execute(statement)
-        return list(result.scalars().all())
+        return [
+            ReservaPublic.model_validate(reserva) for reserva in result.scalars().all()
+        ]
 
-    async def create(self, reserva_in: ReservaCreate) -> Reserva:
-        db_reserva = Reserva.model_validate(reserva_in)
+    async def create(
+        self,
+        reserva_in: ReservaCreate,
+        *,
+        precio_total: Decimal | None = None,
+    ) -> ReservaPublic:
+        extra = {"precio_total": precio_total} if precio_total is not None else {}
+        db_reserva = Reserva.model_validate(reserva_in, update=extra)
         self.session.add(db_reserva)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(db_reserva)
-        return db_reserva
+        return ReservaPublic.model_validate(db_reserva)
 
-    async def update(self, db_reserva: Reserva, reserva_in: ReservaUpdate) -> Reserva:
+    async def update(
+        self,
+        reserva_id: int,
+        reserva_in: ReservaUpdate,
+        *,
+        precio_total: Decimal | None = None,
+    ) -> ReservaPublic | None:
+        db_reserva = await self.session.get(Reserva, reserva_id)
+        if db_reserva is None:
+            return None
+
         update_data: dict[str, Any] = reserva_in.model_dump(exclude_unset=True)
+        if precio_total is not None:
+            update_data["precio_total"] = precio_total
         for field, value in update_data.items():
             setattr(db_reserva, field, value)
+        db_reserva.updated_at = datetime.now(timezone.utc)
         self.session.add(db_reserva)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(db_reserva)
-        return db_reserva
+        return ReservaPublic.model_validate(db_reserva)
 
-    async def delete(self, db_reserva: Reserva) -> None:
+    async def delete(self, reserva_id: int) -> bool:
+        db_reserva = await self.session.get(Reserva, reserva_id)
+        if db_reserva is None:
+            return False
+
         await self.session.delete(db_reserva)
-        await self.session.commit()
+        await self.session.flush()
+        return True

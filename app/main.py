@@ -1,11 +1,18 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 import app.models
-from app.core.database import init_db, engine
 from app.api.v1 import guias, reservas, tours, turistas
+from app.core.database import engine, init_db
+from app.core.exceptions import (
+    BusinessRuleError,
+    ConflictError,
+    DomainError,
+    NotFoundError,
+)
 
 
 @asynccontextmanager
@@ -23,12 +30,33 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.exception_handler(DomainError)
+async def handle_domain_error(
+    _request: Request,
+    exc: DomainError,
+) -> JSONResponse:
+    if isinstance(exc, NotFoundError):
+        status_code = status.HTTP_404_NOT_FOUND
+    elif isinstance(exc, ConflictError):
+        status_code = status.HTTP_409_CONFLICT
+    elif isinstance(exc, BusinessRuleError):
+        status_code = status.HTTP_400_BAD_REQUEST
+    else:
+        status_code = status.HTTP_400_BAD_REQUEST
+
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": str(exc)},
+    )
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"], 
-    allow_headers=["*"], 
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

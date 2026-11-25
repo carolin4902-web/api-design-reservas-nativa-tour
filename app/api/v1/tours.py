@@ -1,5 +1,6 @@
 # app/api/v1/tours.py
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import get_tour_service
@@ -15,8 +16,7 @@ async def create_tour(
     service: Annotated[TourService, Depends(get_tour_service)],
 ) -> TourPublic:
     """Crea una nueva propuesta de tour guiado."""
-    db_tour = await service.create(tour_in)
-    return TourPublic.model_validate(db_tour)
+    return await service.create(tour_in)
 
 
 @router.get("", response_model=list[TourPublic])
@@ -27,8 +27,7 @@ async def list_tours(
     guia_id: int | None = None,
 ) -> list[TourPublic]:
     """Consulta el listado de tours disponibles o filtrados por guía."""
-    tours = await service.list_all(skip=skip, limit=limit, guia_id=guia_id)
-    return [TourPublic.model_validate(t) for t in tours]
+    return await service.list_all(skip=skip, limit=limit, guia_id=guia_id)
 
 
 @router.get("/{tour_id}", response_model=TourPublic)
@@ -37,8 +36,7 @@ async def get_tour(
     service: Annotated[TourService, Depends(get_tour_service)],
 ) -> TourPublic:
     """Obtiene los detalles específicos de un tour."""
-    db_tour = await service.get_by_id(tour_id)
-    return TourPublic.model_validate(db_tour)
+    return await service.get_by_id(tour_id)
 
 
 @router.patch("/{tour_id}", response_model=TourPublic)
@@ -48,8 +46,7 @@ async def update_tour(
     service: Annotated[TourService, Depends(get_tour_service)],
 ) -> TourPublic:
     """Actualiza la información de un tour."""
-    db_tour = await service.update(tour_id, tour_in)
-    return TourPublic.model_validate(db_tour)
+    return await service.update(tour_id, tour_in)
 
 
 @router.delete("/{tour_id}", status_code=status.HTTP_204_NO_CONTENT)

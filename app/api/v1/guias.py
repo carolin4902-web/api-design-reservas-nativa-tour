@@ -1,5 +1,6 @@
 # app/api/v1/guias.py
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import get_guia_service
@@ -15,8 +16,7 @@ async def create_guia(
     service: Annotated[GuiaService, Depends(get_guia_service)],
 ) -> GuiaPublic:
     """Registra un nuevo guía en la plataforma."""
-    db_guia = await service.create(guia_in)
-    return GuiaPublic.model_validate(db_guia)
+    return await service.create(guia_in)
 
 
 @router.get("", response_model=list[GuiaPublic])
@@ -26,8 +26,7 @@ async def list_guias(
     limit: int = 100,
 ) -> list[GuiaPublic]:
     """Obtiene la lista de guías turísticos."""
-    guias = await service.list_all(skip=skip, limit=limit)
-    return [GuiaPublic.model_validate(g) for g in guias]
+    return await service.list_all(skip=skip, limit=limit)
 
 
 @router.get("/{guia_id}", response_model=GuiaPublic)
@@ -36,8 +35,7 @@ async def get_guia(
     service: Annotated[GuiaService, Depends(get_guia_service)],
 ) -> GuiaPublic:
     """Obtiene la información detallada de un guía."""
-    db_guia = await service.get_by_id(guia_id)
-    return GuiaPublic.model_validate(db_guia)
+    return await service.get_by_id(guia_id)
 
 
 @router.patch("/{guia_id}", response_model=GuiaPublic)
@@ -47,8 +45,7 @@ async def update_guia(
     service: Annotated[GuiaService, Depends(get_guia_service)],
 ) -> GuiaPublic:
     """Actualiza los datos o estado de verificación de un guía."""
-    db_guia = await service.update(guia_id, guia_in)
-    return GuiaPublic.model_validate(db_guia)
+    return await service.update(guia_id, guia_in)
 
 
 @router.delete("/{guia_id}", status_code=status.HTTP_204_NO_CONTENT)
